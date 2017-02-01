@@ -17,6 +17,8 @@ import android.widget.TextView;
 
 import com.anthonydunk.deputychallenge.dummy.DummyContent;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -35,30 +37,23 @@ public class ShiftListActivity extends AppCompatActivity {
      */
     private boolean mTwoPane;
 
-    ShiftsDatabase mShiftsDatabase;
+    ShiftsDatabase mDB;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_shift_list);
 
-        mShiftsDatabase = new ShiftsDatabase(this);
-        ShiftDetails details = new ShiftDetails();
-        details.shiftID = 1;
-        details.startTime="now";
-        details.endTime="then";
-        details.startLatitude = "-33.0";
-        details.startLongitude = "151.0";
-        details.endLatitude = "-33.1";
-        details.endLongitude = "151.1";
-        details.imageURL = "none";
-        mShiftsDatabase.AddShift(details);
+        mDB = new ShiftsDatabase(this);
+        int [] shiftIDs = mDB.GetShiftIDs();
+        int numberOfShifts = shiftIDs.length;
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         toolbar.setTitle(getTitle());
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab.setVisibility(View.INVISIBLE);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -69,7 +64,17 @@ public class ShiftListActivity extends AppCompatActivity {
 
         DummyContent.ITEMS.clear();
         DummyContent.ITEM_MAP.clear();
-        DummyContent.addItem(new DummyContent.DummyItem("0","content","details"));
+        for (int n=0; n<numberOfShifts; n++) {
+            ShiftDetails details = mDB.GetShiftDetails(shiftIDs[n]);
+            Date startTime = Utility.timeStringtoTime(details.start);
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE d MMM yyyy, HH:mm");
+            String content = simpleDateFormat.format(startTime);
+            if (details.end==null || details.end.length()==0)
+                content += " (Active)";
+            String detail = details.startLatitude+","+details.startLongitude+" .. "+
+                    details.endLatitude+","+details.endLongitude;
+            DummyContent.addItem(new DummyContent.DummyItem(Integer.toString(details.id), content, detail));
+        }
 
         View recyclerView = findViewById(R.id.shift_list);
         assert recyclerView != null;

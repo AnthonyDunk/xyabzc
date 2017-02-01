@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">DeputyChallenge</string>
+    <string name="app_name">Shift Manager</string>
     <string name="title_shift_list">Shift List</string>
     <string name="title_shift_detail">Shift Detail</string>
 </resources>

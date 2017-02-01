@@ -5,12 +5,12 @@ package com.anthonydunk.deputychallenge;
  */
 
 public class ShiftDetails {
-    public int shiftID;
-    public String startTime;
-    public String endTime;
+    public int id;
+    public String start;
+    public String end;
     public String startLatitude;
     public String startLongitude;
     public String endLatitude;
     public String endLongitude;
-    public String imageURL;
+    public String image;
 }

@@ -17,7 +17,7 @@ import android.os.Environment;
 
 public class ShiftsDatabase {
 
-	final String m_sDatabaseName	= "ShiftsDatabase";
+	final String m_sDatabaseName	= "ShiftsDatabase.sql";
 
 	private SQLiteDatabase m_db;
 	private boolean m_bInitialised;
@@ -28,11 +28,11 @@ public class ShiftsDatabase {
 		m_bInitialised = false;
 		try {
 			   m_db = act.openOrCreateDatabase(m_sDatabaseName, Activity.MODE_PRIVATE, null);
-			   
+
 			   // Create shifts table
 			   m_db.execSQL("CREATE TABLE IF NOT EXISTS Shifts (_id INTEGER PRIMARY KEY, "+
-					   "shiftID INTEGER, start TEXT, end TEXT, startLatitude TEXT, startLongitude TEXT, "+
-			   			"endLatitude TEXT, endLongitude TEXT, imageURL TEXT);");
+					   "id INTEGER, start TEXT, end TEXT, startLatitude TEXT, startLongitude TEXT, "+
+			   			"endLatitude TEXT, endLongitude TEXT, image TEXT);");
 
 			   m_bInitialised = true;
 		}
@@ -50,9 +50,9 @@ public class ShiftsDatabase {
 		int [] shiftIDs = null;
 		try {			 			   
 		   //retrieve data from database
-		   Cursor c = m_db.rawQuery("SELECT * FROM Shifts ORDER BY shiftID" , null);
+		   Cursor c = m_db.rawQuery("SELECT * FROM Shifts ORDER BY id" , null);
 
-		   int nColumnIndex = c.getColumnIndex("shiftID");
+		   int nColumnIndex = c.getColumnIndex("id");
 
 		   // Check if our result was valid.
 		   int nCount = c.getCount();
@@ -84,8 +84,8 @@ public class ShiftsDatabase {
 		int nID = -1;
 		
 		try {			 			   
-		   Cursor c = m_db.rawQuery("SELECT _id FROM Shifts WHERE shiftID=\""+Integer.toString(shiftID)+"\"", null);
-		   int nColumnIndex = c.getColumnIndex("shiftID");
+		   Cursor c = m_db.rawQuery("SELECT * FROM Shifts WHERE id=\""+Integer.toString(shiftID)+"\"", null);
+		   int nColumnIndex = c.getColumnIndex("id");
 
 		   // Check if our result was valid.
 		   int nCount = c.getCount();
@@ -94,14 +94,14 @@ public class ShiftsDatabase {
 			   c.moveToFirst();
 			   if (c != null) {
 				   details = new ShiftDetails();
-				   details.shiftID = c.getInt(c.getColumnIndex("shiftID"));
-				   details.startTime = c.getString(c.getColumnIndex("startTime"));
-				   details.endTime = c.getString(c.getColumnIndex("endTime"));
+				   details.id = c.getInt(c.getColumnIndex("id"));
+				   details.start = c.getString(c.getColumnIndex("start"));
+				   details.end = c.getString(c.getColumnIndex("end"));
 				   details.startLatitude = c.getString(c.getColumnIndex("startLatitude"));
 				   details.startLongitude = c.getString(c.getColumnIndex("startLongitude"));
 				   details.endLatitude = c.getString(c.getColumnIndex("endLatitude"));
 				   details.endLongitude = c.getString(c.getColumnIndex("endLongitude"));
-				   details.imageURL = c.getString(c.getColumnIndex("imageURL"));
+				   details.image = c.getString(c.getColumnIndex("image"));
 			   }
 		   }
 		}
@@ -119,16 +119,16 @@ public class ShiftsDatabase {
 	{
 		boolean bOk = false;
 		try {
-			   m_db.execSQL("INSERT INTO Shifts (shiftID,startTime,endTime,startLatitude,startLongitude,endLatitude,endLongitude,imageURL) "+
+			   m_db.execSQL("INSERT INTO Shifts (id,start,end,startLatitude,startLongitude,endLatitude,endLongitude,image) "+
 					   "VALUES (" +
-					   Integer.toString(details.shiftID)+
-					   ",\""+details.startTime+"\"" +
-					   ",\""+details.endTime+"\"" +
+					   Integer.toString(details.id)+
+					   ",\""+details.start+"\"" +
+					   ",\""+details.end+"\"" +
 					   ",\""+details.startLatitude+"\"" +
 					   ",\""+details.startLongitude+"\"" +
 					   ",\""+details.endLatitude+"\"" +
 					   ",\""+details.endLongitude+"\"" +
-					   ",\""+details.imageURL+"\"" +
+					   ",\""+details.image+"\"" +
 					   ");");
 			   bOk = true;
 		}
@@ -137,12 +137,12 @@ public class ShiftsDatabase {
 	}
 	
 
-	public boolean DeleteAllShifts(String sName)
+	public boolean DeleteAllShifts()
 	{
 		boolean bOk = false;
 		try {			 	
 		   // Delete all list items
-		   m_db.execSQL("DELETE * FROM Shifts");
+		   m_db.execSQL("DELETE FROM Shifts;");
 
 		   bOk = true;
 		}
