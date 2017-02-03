@@ -42,9 +42,16 @@ import static java.net.Proxy.Type.HTTP;
 
 import com.google.gson.*;
 
+//
+// Main activity for "Deputy Challenge"
+//
+// Written by Anthony Dunk, February 2017
+// anthonyd@rocketmail.com
+//
+
 public class MainActivity extends AppCompatActivity {
 
-    ShiftsDatabase mDB;
+    ShiftsLocalDatabase mDB;
 
     LocationManager m_locationProvider;
     LocationListener m_locationListener;
@@ -71,9 +78,10 @@ public class MainActivity extends AppCompatActivity {
         Utility.loadAndDisplayWebImage(logoURL,logoImageView,this);
 
         // Populate local cache database from server
-        mDB = new ShiftsDatabase(this);
+        mDB = new ShiftsLocalDatabase(this);
         retrieveShiftData();
 
+        // Set a timer to periodically update the status of the buttons
         final Activity finalAct = this;
         mHandler = new Handler();
         Runnable runable = new Runnable() {
@@ -98,10 +106,11 @@ public class MainActivity extends AppCompatActivity {
         };
        mHandler.postDelayed(runable,1000); // 2 sec
 
-                // Request location updates
+        // Request location updates from GPS or Network
         m_locationProvider = (LocationManager) this.getSystemService(LOCATION_SERVICE);
         if (m_locationProvider!=null) {
             m_locationListener = new LocationListener() {
+
                 public void onLocationChanged(Location location) {
                     mHaveLocation = true;
                     mCurrentLatitude = location.getLatitude();
@@ -109,21 +118,14 @@ public class MainActivity extends AppCompatActivity {
                     System.out.println(Double.toString(mCurrentLatitude)+","+Double.toString(mCurrentLongitude));
                 }
 
-
                 public void onProviderDisabled(String arg0) {
-                    // TODO Auto-generated method stub
-
                 }
 
                 public void onProviderEnabled(String arg0) {
-                    // TODO Auto-generated method stub
-
                 }
 
                 public void onStatusChanged(String arg0, int arg1,
                                             Bundle arg2) {
-                    // TODO Auto-generated method stub
-
                 }
             };
 
@@ -134,91 +136,18 @@ public class MainActivity extends AppCompatActivity {
         else
         {
             System.out.println("No permission to use location !");
-
         }
     }
 
-
-
-    public void startEndShift(boolean startShift, Date time, String lat, String lon)
+    public void disableButtons()
     {
-        //
-        // Send a request to start or end a shift
-        //
-
-        final Activity finalThis = this;
-        final String finalLat = lat;
-        final String finalLon = lon;
-        final boolean finalStart = startShift;
-        final Date finalTime = time;
-
+        // Disable all buttons
         Button butStartShift = (Button)findViewById(R.id.buttonStartShift);
         butStartShift.setEnabled(false);
-
         Button butEndShift = (Button)findViewById(R.id.buttonEndShift);
         butEndShift.setEnabled(false);
-
         Button butShiftDetails = (Button)findViewById(R.id.buttonShiftDetails);
         butShiftDetails.setEnabled(false);
-
-        mRetrievingShift = true;
-
-        Thread thread = new Thread(new Runnable() {
-
-            public void run() {
-
-                try {
-                    String url;
-                    if (finalStart)
-                        url = "https://apjoqdqpi3.execute-api.us-west-2.amazonaws.com/dmc/shift/start";
-                    else
-                        url = "https://apjoqdqpi3.execute-api.us-west-2.amazonaws.com/dmc/shift/end";
-
-                    URL obj = new URL(url);
-                    HttpsURLConnection con = (HttpsURLConnection) obj.openConnection();
-
-                    con.setDoOutput(true);
-                    con.setDoInput(true);
-                    con.setRequestProperty("Content-Type", "application/json");
-                    con.setRequestProperty("Accept", "application/json");
-                    con.setRequestMethod("POST");
-
-                    ShiftStartEndData shiftStart = new ShiftStartEndData();
-                    shiftStart.time = Utility.timeToTimeString(finalTime);
-                    shiftStart.latitude = finalLat;
-                    shiftStart.longitude = finalLon;
-
-                    JSONObject json = new JSONObject();
-                    json.put("time", shiftStart.time);
-                    json.put("latitude", shiftStart.latitude);
-                    json.put("longitude", shiftStart.longitude);
-
-                    con.setRequestMethod("POST");
-                    con.setRequestProperty("Accept", "application/json");
-                    con.setRequestProperty("Authorization", "Deputy 1aae64f96017f0387614fe85a9312a1ca804cae3");
-
-                    // Send post request
-                    con.setDoOutput(true);
-                    DataOutputStream wr = new DataOutputStream(con.getOutputStream());
-                    wr.writeBytes(json.toString());
-                    wr.flush();
-                    wr.close();
-
-                    int responseCode = con.getResponseCode();
-                    if (responseCode == HttpURLConnection.HTTP_OK) {
-                        requestShiftData();
-                    }
-                    else {
-                        System.out.println("POST request failed!");
-                    }
-                } catch (Exception e) {
-
-                }
-            }
-        });
-
-        thread.start();
-
     }
 
     public void requestShiftData()
@@ -284,20 +213,13 @@ public class MainActivity extends AppCompatActivity {
         mRetrievingShift = false;
     }
 
+
     public void retrieveShiftData() {
 
         final Activity finalAct = this;
         final Handler handler = new Handler();
 
-        Button butStartShift = (Button)findViewById(R.id.buttonStartShift);
-        butStartShift.setEnabled(false);
-
-        Button butEndShift = (Button)findViewById(R.id.buttonEndShift);
-        butEndShift.setEnabled(false);
-
-        Button butShiftDetails = (Button)findViewById(R.id.buttonShiftDetails);
-        butShiftDetails.setEnabled(false);
-
+        disableButtons();
 
         Thread thread = new Thread(new Runnable() {
 
@@ -333,6 +255,77 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+
+    public void startEndShift(boolean startShift, Date time, String lat, String lon)
+    {
+        //
+        // Send a request to start or end a shift
+        //
+        final Activity finalThis = this;
+        final String finalLat = lat;
+        final String finalLon = lon;
+        final boolean finalStart = startShift;
+        final Date finalTime = time;
+
+        disableButtons();
+
+        mRetrievingShift = true;
+
+        Thread thread = new Thread(new Runnable() {
+
+            public void run() {
+
+                try {
+                    String url;
+                    if (finalStart)
+                        url = "https://apjoqdqpi3.execute-api.us-west-2.amazonaws.com/dmc/shift/start";
+                    else
+                        url = "https://apjoqdqpi3.execute-api.us-west-2.amazonaws.com/dmc/shift/end";
+
+                    URL obj = new URL(url);
+                    HttpsURLConnection con = (HttpsURLConnection) obj.openConnection();
+
+                    con.setDoOutput(true);
+                    con.setDoInput(true);
+                    con.setRequestProperty("Content-Type", "application/json");
+                    con.setRequestProperty("Accept", "application/json");
+                    con.setRequestMethod("POST");
+
+                    JSONObject json = new JSONObject();
+                    json.put("time", Utility.timeToTimeString(finalTime));
+                    json.put("latitude", finalLat);
+                    json.put("longitude", finalLon);
+
+                    con.setRequestMethod("POST");
+                    con.setRequestProperty("Accept", "application/json");
+                    con.setRequestProperty("Authorization", "Deputy 1aae64f96017f0387614fe85a9312a1ca804cae3");
+
+                    // Send post request
+                    con.setDoOutput(true);
+                    DataOutputStream wr = new DataOutputStream(con.getOutputStream());
+                    wr.writeBytes(json.toString());
+                    wr.flush();
+                    wr.close();
+
+                    int responseCode = con.getResponseCode();
+                    if (responseCode == HttpURLConnection.HTTP_OK) {
+                        requestShiftData();
+                    }
+                    else {
+                        System.out.println("POST request failed!");
+                    }
+                } catch (Exception e) {
+                    System.out.println(e.toString());
+                }
+            }
+        });
+
+        thread.start();
+
+    }
+
+
+    // Start shift button pressed
     public void onStartShift(View v)
     {
         Date now = new Date();
@@ -340,6 +333,7 @@ public class MainActivity extends AppCompatActivity {
         startEndShift(true,now,df.format(mCurrentLatitude),df.format(mCurrentLongitude));
     }
 
+    // End shift button pressed
     public void onEndShift(View v)
     {
         Date now = new Date();
@@ -347,6 +341,7 @@ public class MainActivity extends AppCompatActivity {
         startEndShift(false,now,df.format(mCurrentLatitude),df.format(mCurrentLongitude));
     }
 
+    // Show shift details button pressed
     public void onShiftDetails(View v)
     {
         // Switch activity!

@@ -72,15 +72,16 @@ public class ShiftDetailFragment extends Fragment {
             SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE d MMM yyyy, HH:mm");
             Date startDateTime = Utility.timeStringtoTime(mItem.details.start);
             String startTime = simpleDateFormat.format(startDateTime);
+            String text = "START:\n"+startTime+"\n"+mItem.details.startLatitude+","+mItem.details.startLongitude;
 
             String endTime = "";
             if (mItem.details.end!=null && mItem.details.end.length()>0) {
                 Date endDateTime = Utility.timeStringtoTime(mItem.details.end);
                 endTime = simpleDateFormat.format(endDateTime);
+                text += "\n\nEND:\n"+endTime+"\n"+
+                        mItem.details.endLatitude+","+mItem.details.endLongitude;
             }
-            String text = "Shift start:\n"+startTime+"\n"+mItem.details.startLatitude+","+mItem.details.startLongitude+
-                    "\n\nShift end:\n"+endTime+"\n"+
-                    mItem.details.endLatitude+","+mItem.details.endLongitude;
+
             ((TextView) rootView.findViewById(R.id.shift_detail)).setText(text);
         }
 

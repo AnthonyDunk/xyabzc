@@ -35,14 +35,14 @@ public class ShiftListActivity extends AppCompatActivity {
      */
     private boolean mTwoPane;
 
-    ShiftsDatabase mDB;
+    ShiftsLocalDatabase mDB;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_shift_list);
 
-        mDB = new ShiftsDatabase(this);
+        mDB = new ShiftsLocalDatabase(this);
         int [] shiftIDs = mDB.GetShiftIDs();
         int numberOfShifts = shiftIDs.length;
 

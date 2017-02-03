@@ -11,7 +11,6 @@ public class ListContent {
 
     public static final List<Item> ITEMS = new ArrayList<Item>();
     public static final Map<String, Item> ITEM_MAP = new HashMap<String, Item>();
-    //private static final int COUNT = 0;
 
     public static void addItem(Item item) {
         ITEMS.add(item);

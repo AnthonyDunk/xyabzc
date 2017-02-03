@@ -15,16 +15,23 @@ import android.database.sqlite.SQLiteDatabase;
 import android.media.MediaScannerConnection;
 import android.os.Environment;
 
-public class ShiftsDatabase {
+//
+// This is the local cache database. The results of calling the GET /shifts web API are stored here so the user can still refer to
+// them without a network connection.
+//
+public class ShiftsLocalDatabase {
 
-	final String m_sDatabaseName	= "ShiftsDatabase.sql";
+	final String m_sDatabaseName	= "ShiftsLocalDatabase.sql";
 
 	private SQLiteDatabase m_db;
 	private boolean m_bInitialised;
 	
 	
-	public ShiftsDatabase(Activity act)
+	public ShiftsLocalDatabase(Activity act)
 	{
+		//
+		// Create database and table if required
+		//
 		m_bInitialised = false;
 		try {
 			   m_db = act.openOrCreateDatabase(m_sDatabaseName, Activity.MODE_PRIVATE, null);
@@ -45,6 +52,9 @@ public class ShiftsDatabase {
 	public boolean Initialised() {return m_bInitialised;}
 	
 
+	//
+	// Get an array of the IDs for all shifts
+	//
 	public int [] GetShiftIDs ()
 	{
 		int [] shiftIDs = null;
@@ -78,6 +88,9 @@ public class ShiftsDatabase {
 		return shiftIDs;
 	}
 
+	//
+	// Get the shift details for a single shift using it's ID
+	//
 	public ShiftDetails GetShiftDetails(int shiftID)
 	{
 		ShiftDetails details = null;
@@ -114,7 +127,9 @@ public class ShiftsDatabase {
 	}
 
 	
-	
+	//
+	// Add a new shift
+	//
 	public boolean AddShift(ShiftDetails details)
 	{
 		boolean bOk = false;
@@ -137,6 +152,9 @@ public class ShiftsDatabase {
 	}
 	
 
+	//
+	// Delete all shifts
+	//
 	public boolean DeleteAllShifts()
 	{
 		boolean bOk = false;

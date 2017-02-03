@@ -1,9 +1,6 @@
 package com.anthonydunk.deputychallenge;
 
-/**
- * Created by antho on 30/01/2017.
- */
-
+// A class containing the values returned by the GET /shifts request
 public class ShiftDetails {
     public int id;
     public String start;

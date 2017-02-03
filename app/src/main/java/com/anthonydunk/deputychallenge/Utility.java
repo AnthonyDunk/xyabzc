@@ -19,6 +19,9 @@ import java.util.TimeZone;
 
 public class Utility {
 
+    //
+    // Load an image from the web using a URL, and display it in the specified ImageView
+    //
     public static void loadAndDisplayWebImage(String imageURL, ImageView iv, Activity act)
     {
         final String finalImageURL = imageURL;
@@ -38,8 +41,6 @@ public class Utility {
                         }
                     });
 
-                    //finalImageView.requestFocus();
-                    //finalView.invalidate();
                 } catch (Exception e)
                 {
                     // failure
@@ -50,18 +51,23 @@ public class Utility {
         thread.start();
     }
 
+    //
+    // Convert a Date object to a string in the required UTC format e.g. 2012-01-01T14:00:00+00:00
+    //
     public static String timeToTimeString(Date dt)
     {
-        // Convert a time to a string in UTC format e.g. 2012-01-01T14:00:00+00:00
         DateFormat timeFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'+'00':'00");
         timeFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
         String s = timeFormat.format(dt);
         return s;
     }
 
+    //
+    // Convert a UTC time string to a Date object
+    //
     public static Date timeStringtoTime(String s) {
         try {
-            // Convert a time to a string in UTC format e.g. 2012-01-01T14:00:00+00:00
+
             DateFormat timeFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'+'00':'00");
             timeFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
             Date time = timeFormat.parse(s);
