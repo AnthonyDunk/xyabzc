@@ -5,6 +5,8 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
@@ -16,6 +18,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -50,16 +53,52 @@ public class MainActivity extends AppCompatActivity {
     double mCurrentLatitude = 0.0;
     double mCurrentLongitude = 0.0;
 
+    boolean mShiftActive = false;
+    boolean mRetrievingShift = false;
+
+    Handler mHandler;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // TBD: Rather than hard-coding the business URL, we should get it from the Web API call: GET /business
+        String logoURL = "https://www.myob.com/au/addons/media/logos/deputy_logo_1.png";
+
+        // Load logo from web page
+        ImageView logoImageView = (ImageView)findViewById(R.id.logoImageView);
+        Utility.loadAndDisplayWebImage(logoURL,logoImageView,this);
+
         // Populate local cache database from server
         mDB = new ShiftsDatabase(this);
         retrieveShiftData();
 
-        // Request location updates
+        final Activity finalAct = this;
+        mHandler = new Handler();
+        Runnable runable = new Runnable() {
+
+            @Override
+            public void run() {
+
+                finalAct.runOnUiThread(new Runnable() {
+                    public void run() {
+                        Button butStartShift = (Button)findViewById(R.id.buttonStartShift);
+                        butStartShift.setEnabled(!mShiftActive && !mRetrievingShift);
+
+                        Button butEndShift = (Button)findViewById(R.id.buttonEndShift);
+                        butEndShift.setEnabled(mShiftActive && !mRetrievingShift);
+
+                        Button butShiftDetails = (Button)findViewById(R.id.buttonShiftDetails);
+                        butShiftDetails.setEnabled(!mRetrievingShift);
+                    }
+                });
+                mHandler.postDelayed(this,1000); // 2 sec
+            }
+        };
+       mHandler.postDelayed(runable,1000); // 2 sec
+
+                // Request location updates
         m_locationProvider = (LocationManager) this.getSystemService(LOCATION_SERVICE);
         if (m_locationProvider!=null) {
             m_locationListener = new LocationListener() {
@@ -90,6 +129,7 @@ public class MainActivity extends AppCompatActivity {
 
             // Minimum GPS location update: 5 seconds or 10 metres
             m_locationProvider.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 10.0f, m_locationListener);
+            m_locationProvider.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 5000, 10.0f, m_locationListener);
         }
         else
         {
@@ -97,6 +137,8 @@ public class MainActivity extends AppCompatActivity {
 
         }
     }
+
+
 
     public void startEndShift(boolean startShift, Date time, String lat, String lon)
     {
@@ -109,6 +151,17 @@ public class MainActivity extends AppCompatActivity {
         final String finalLon = lon;
         final boolean finalStart = startShift;
         final Date finalTime = time;
+
+        Button butStartShift = (Button)findViewById(R.id.buttonStartShift);
+        butStartShift.setEnabled(false);
+
+        Button butEndShift = (Button)findViewById(R.id.buttonEndShift);
+        butEndShift.setEnabled(false);
+
+        Button butShiftDetails = (Button)findViewById(R.id.buttonShiftDetails);
+        butShiftDetails.setEnabled(false);
+
+        mRetrievingShift = true;
 
         Thread thread = new Thread(new Runnable() {
 
@@ -173,6 +226,7 @@ public class MainActivity extends AppCompatActivity {
         //
         // Get shift data from web API and cache in local database
         //
+        mRetrievingShift = true;
         try  {
 
             try {
@@ -190,6 +244,7 @@ public class MainActivity extends AppCompatActivity {
                     BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
                     String line;
 
+                    mShiftActive = false;
                     while ((line = rd.readLine()) != null) {
                         result.append(line);
 
@@ -199,6 +254,10 @@ public class MainActivity extends AppCompatActivity {
                             ShiftDetails shift = new Gson().fromJson(s, ShiftDetails.class);
                             System.out.println(shift.start+" "+shift.end);
                             mDB.AddShift(shift);
+                            if (shift.end.length()==0)
+                            {
+                                mShiftActive = true;
+                            }
                         }
 
                         int [] shiftIDs = mDB.GetShiftIDs();
@@ -222,11 +281,22 @@ public class MainActivity extends AppCompatActivity {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        mRetrievingShift = false;
     }
 
     public void retrieveShiftData() {
 
+        final Activity finalAct = this;
         final Handler handler = new Handler();
+
+        Button butStartShift = (Button)findViewById(R.id.buttonStartShift);
+        butStartShift.setEnabled(false);
+
+        Button butEndShift = (Button)findViewById(R.id.buttonEndShift);
+        butEndShift.setEnabled(false);
+
+        Button butShiftDetails = (Button)findViewById(R.id.buttonShiftDetails);
+        butShiftDetails.setEnabled(false);
 
 
         Thread thread = new Thread(new Runnable() {
@@ -237,17 +307,22 @@ public class MainActivity extends AppCompatActivity {
 
                 handler.post(new Runnable(){
                     public void run() {
-                        TextView tvStatus = (TextView)findViewById(R.id.textStatus);
-                        tvStatus.setVisibility(View.INVISIBLE);
+                        finalAct.runOnUiThread(new Runnable() {
+                            public void run() {
+                                TextView tvStatus = (TextView)findViewById(R.id.textStatus);
+                                tvStatus.setVisibility(View.INVISIBLE);
 
-                        Button butStartShift = (Button)findViewById(R.id.buttonStartShift);
-                        butStartShift.setEnabled(true);
+                                Button butStartShift = (Button)findViewById(R.id.buttonStartShift);
+                                butStartShift.setEnabled(!mShiftActive && !mRetrievingShift);
 
-                        Button butEndShift = (Button)findViewById(R.id.buttonEndShift);
-                        butEndShift.setEnabled(true);
+                                Button butEndShift = (Button)findViewById(R.id.buttonEndShift);
+                                butEndShift.setEnabled(mShiftActive&& !mRetrievingShift);
 
-                        Button butShiftDetails = (Button)findViewById(R.id.buttonShiftDetails);
-                        butShiftDetails.setEnabled(true);
+                                Button butShiftDetails = (Button)findViewById(R.id.buttonShiftDetails);
+                                butShiftDetails.setEnabled(!mRetrievingShift);
+                            }
+                        });
+
                     }
                 });
             }

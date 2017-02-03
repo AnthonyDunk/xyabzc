@@ -1,5 +1,12 @@
 package com.anthonydunk.deputychallenge;
 
+import android.app.Activity;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.view.View;
+import android.widget.ImageView;
+
+import java.net.URL;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -12,6 +19,36 @@ import java.util.TimeZone;
 
 public class Utility {
 
+    public static void loadAndDisplayWebImage(String imageURL, ImageView iv, Activity act)
+    {
+        final String finalImageURL = imageURL;
+        final ImageView finalImageView = iv;
+        final Activity finalAct = act;
+        Thread thread = new Thread(new Runnable() {
+
+            public void run() {
+                try {
+                    URL url = new URL(finalImageURL);
+                    final Bitmap bmp = BitmapFactory.decodeStream(url.openConnection().getInputStream());
+
+                    finalAct.runOnUiThread(new Runnable() {
+                        public void run() {
+                            finalImageView.setImageURI(null);
+                            finalImageView.setImageBitmap(bmp);
+                        }
+                    });
+
+                    //finalImageView.requestFocus();
+                    //finalView.invalidate();
+                } catch (Exception e)
+                {
+                    // failure
+                }
+            }
+        });
+
+        thread.start();
+    }
 
     public static String timeToTimeString(Date dt)
     {

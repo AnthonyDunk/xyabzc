@@ -1,6 +1,7 @@
 package com.anthonydunk.deputychallenge;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -25,15 +26,24 @@ public class ShiftDetailActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.detail_toolbar);
         setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setVisibility(View.INVISIBLE);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own detail action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
+        ListContent.Item item = ListContent.ITEM_MAP.get(getIntent().getStringExtra(ShiftDetailFragment.ARG_ITEM_ID));
+        if (item!=null) {
+
+            final String finalLat = item.details.startLatitude;
+            final String finalLon = item.details.startLongitude;
+            FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+            fab.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+
+                    // Show location on a Google Map
+                    String url = "https://maps.google.com/maps?q=" + finalLat + "," + finalLon;
+                    Intent i = new Intent(Intent.ACTION_VIEW);
+                    i.setData(Uri.parse(url));
+                    startActivity(i);
+                }
+            });
+        }
 
         // Show the Up button in the action bar.
         ActionBar actionBar = getSupportActionBar();
@@ -62,6 +72,8 @@ public class ShiftDetailActivity extends AppCompatActivity {
                     .add(R.id.shift_detail_container, fragment)
                     .commit();
         }
+
+
     }
 
     @Override

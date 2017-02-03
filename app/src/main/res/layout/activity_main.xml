@@ -11,7 +11,11 @@
     android:orientation="vertical"
     tools:context="com.anthonydunk.deputychallenge.MainActivity">
 
-
+<ImageView
+    android:layout_width="50dp"
+    android:layout_height="50dp"
+    android:id="@+id/logoImageView"
+    android:layout_gravity="center_horizontal"/>
     <TextView
         android:text="Connecting to server..."
         android:layout_width="match_parent"

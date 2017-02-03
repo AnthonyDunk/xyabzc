@@ -7,9 +7,11 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.anthonydunk.deputychallenge.dummy.DummyContent;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * A fragment representing a single Shift detail screen.
@@ -27,7 +29,7 @@ public class ShiftDetailFragment extends Fragment {
     /**
      * The dummy content this fragment is presenting.
      */
-    private DummyContent.DummyItem mItem;
+    private ListContent.Item mItem;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -44,7 +46,7 @@ public class ShiftDetailFragment extends Fragment {
             // Load the dummy content specified by the fragment
             // arguments. In a real-world scenario, use a Loader
             // to load content from a content provider.
-            mItem = DummyContent.ITEM_MAP.get(getArguments().getString(ARG_ITEM_ID));
+            mItem = ListContent.ITEM_MAP.get(getArguments().getString(ARG_ITEM_ID));
 
             Activity activity = this.getActivity();
             CollapsingToolbarLayout appBarLayout = (CollapsingToolbarLayout) activity.findViewById(R.id.toolbar_layout);
@@ -57,11 +59,29 @@ public class ShiftDetailFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.shift_detail, container, false);
+        View rootView = inflater.inflate(R.layout.shift_detail_layout, container, false);
 
         // Show the dummy content as text in a TextView.
         if (mItem != null) {
-            ((TextView) rootView.findViewById(R.id.shift_detail)).setText(mItem.details);
+
+            // Load image from URL
+            ImageView iv = (ImageView) rootView.findViewById(R.id.detailImageView);
+            Utility.loadAndDisplayWebImage(mItem.details.image,iv,this.getActivity());
+
+            // Set text details
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE d MMM yyyy, HH:mm");
+            Date startDateTime = Utility.timeStringtoTime(mItem.details.start);
+            String startTime = simpleDateFormat.format(startDateTime);
+
+            String endTime = "";
+            if (mItem.details.end!=null && mItem.details.end.length()>0) {
+                Date endDateTime = Utility.timeStringtoTime(mItem.details.end);
+                endTime = simpleDateFormat.format(endDateTime);
+            }
+            String text = "Shift start:\n"+startTime+"\n"+mItem.details.startLatitude+","+mItem.details.startLongitude+
+                    "\n\nShift end:\n"+endTime+"\n"+
+                    mItem.details.endLatitude+","+mItem.details.endLongitude;
+            ((TextView) rootView.findViewById(R.id.shift_detail)).setText(text);
         }
 
         return rootView;

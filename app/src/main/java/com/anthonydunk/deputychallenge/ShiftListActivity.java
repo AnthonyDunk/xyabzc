@@ -15,8 +15,6 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 
-import com.anthonydunk.deputychallenge.dummy.DummyContent;
-
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -54,26 +52,25 @@ public class ShiftListActivity extends AppCompatActivity {
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setVisibility(View.INVISIBLE);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
+        //fab.setOnClickListener(new View.OnClickListener() {
+        //    @Override
+        //    public void onClick(View view) {
+        //         Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+        //                .setAction("Action", null).show();
+        //    }
+        //});
 
-        DummyContent.ITEMS.clear();
-        DummyContent.ITEM_MAP.clear();
+        ListContent.ITEMS.clear();
+        ListContent.ITEM_MAP.clear();
         for (int n=0; n<numberOfShifts; n++) {
             ShiftDetails details = mDB.GetShiftDetails(shiftIDs[n]);
             Date startTime = Utility.timeStringtoTime(details.start);
-            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE d MMM yyyy, HH:mm");
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE d MMM yyyy"); //, HH:mm");
             String content = simpleDateFormat.format(startTime);
             if (details.end==null || details.end.length()==0)
-                content += " (Active)";
-            String detail = details.startLatitude+","+details.startLongitude+" .. "+
-                    details.endLatitude+","+details.endLongitude;
-            DummyContent.addItem(new DummyContent.DummyItem(Integer.toString(details.id), content, detail));
+                content += " (Active shift)";
+
+            ListContent.addItem(new ListContent.Item(Integer.toString(details.id), content, details));
         }
 
         View recyclerView = findViewById(R.id.shift_list);
@@ -90,15 +87,15 @@ public class ShiftListActivity extends AppCompatActivity {
     }
 
     private void setupRecyclerView(@NonNull RecyclerView recyclerView) {
-        recyclerView.setAdapter(new SimpleItemRecyclerViewAdapter(DummyContent.ITEMS));
+        recyclerView.setAdapter(new SimpleItemRecyclerViewAdapter(ListContent.ITEMS));
     }
 
     public class SimpleItemRecyclerViewAdapter
             extends RecyclerView.Adapter<SimpleItemRecyclerViewAdapter.ViewHolder> {
 
-        private final List<DummyContent.DummyItem> mValues;
+        private final List<ListContent.Item> mValues;
 
-        public SimpleItemRecyclerViewAdapter(List<DummyContent.DummyItem> items) {
+        public SimpleItemRecyclerViewAdapter(List<ListContent.Item> items) {
             mValues = items;
         }
 
@@ -146,7 +143,7 @@ public class ShiftListActivity extends AppCompatActivity {
             public final View mView;
             public final TextView mIdView;
             public final TextView mContentView;
-            public DummyContent.DummyItem mItem;
+            public ListContent.Item mItem;
 
             public ViewHolder(View view) {
                 super(view);
